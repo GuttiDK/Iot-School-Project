@@ -6,7 +6,8 @@ const char WIFI_SSID[] = "SibirienAP";
 const char WIFI_PASS[] = "Siberia51244";
 
 // ===== MQTT KONFIGURATION =====
-const char MQTT_BROKER[] = "10.131.15.72";
+//const char MQTT_BROKER[] = "10.131.15.72";
+const char MQTT_BROKER[] = "10.112.148.146";
 const int MQTT_PORT = 1883;
 
 // MQTT Topics
@@ -22,4 +23,4 @@ const int DHT_PIN = 2;
 // ===== SENSOR INDSTILLINGER =====
 const unsigned long SENSOR_INTERVAL = 2000; // ms mellem aflæsninger
 
-#endif
+#endif // CONFIG_H

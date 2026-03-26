@@ -1,6 +1,5 @@
 #include "dht_sensor.h"
 #include "config.h"
-#include "mqtt_handler.h"
 
 DHT dht(DHT_PIN, DHT11);
 
@@ -23,10 +22,6 @@ bool readAndPublishDHT() {
 
   lastTemp = temp;
   lastHum = hum;
-
-  // Send til MQTT
-  mqttPublish(TOPIC_TEMP, temp);
-  mqttPublish(TOPIC_HUM, hum);
 
   Serial.print("Temp: ");
   Serial.print(temp);

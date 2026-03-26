@@ -8,8 +8,6 @@
 #include "dht_sensor.h"
 #include "actuators.h"
 
-unsigned long lastSensorRead = 0;
-
 void setup() {
   Serial.begin(9600);
   while (!Serial);
@@ -30,12 +28,6 @@ void setup() {
 }
 
 void loop() {
-  // MQTT kommunikation
+  // MQTT kommunikation - lytter på requests
   mqttLoop();
-
-  // Læs sensor hver 2. sekund
-  if (millis() - lastSensorRead >= SENSOR_INTERVAL) {
-    lastSensorRead = millis();
-    readAndPublishDHT();
-  }
 }

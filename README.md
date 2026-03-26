@@ -4,11 +4,12 @@ Et Arduino MKR WiFi 1010 projekt der forbinder til en MQTT broker og styrer aktu
 
 ## Funktioner
 
-- **WiFi forbindelse** til lokalt netværk
+- **WiFi forbindelse** til lokalt netværk (kun 2.4GHz)
 - **MQTT kommunikation** til IoT broker
 - **DHT11 sensor** - temperatur og luftfugtighed
-- **Servo motor** - styres via MQTT (0°, 90°, 180°)
+- **Servo motor** - styres via MQTT slider (0°-180°)
 - **LED kontrol** - tænd/sluk via MQTT
+- **Request/Response** - anmod om sensordata on-demand
 
 ## Hardware
 
@@ -34,7 +35,7 @@ src/
 ├── main.cpp          # Hovedprogram - samler alle moduler
 ├── config.h          # Alle indstillinger (WiFi, MQTT, pins)
 ├── wifi_handler.h    # WiFi header
-├── wifi_handler.cpp  # WiFi forbindelse
+├── wifi_handler.cpp  # WiFi forbindelse med debugging
 ├── mqtt_handler.h    # MQTT header
 ├── mqtt_handler.cpp  # MQTT kommunikation og callbacks
 ├── dht_sensor.h      # DHT sensor header
@@ -52,8 +53,8 @@ Rediger `config.h` for at ændre indstillinger:
 const char WIFI_SSID[] = "DitNetværk";
 const char WIFI_PASS[] = "DinKode";
 
-// MQTT Broker
-const char MQTT_BROKER[] = "10.131.15.72";
+// MQTT Broker (shiftr.io)
+const char MQTT_BROKER[] = "broker.shiftr.io";
 const int MQTT_PORT = 1883;
 ```
 
@@ -61,19 +62,43 @@ const int MQTT_PORT = 1883;
 
 | Topic | Retning | Beskrivelse |
 |-------|---------|-------------|
-| `mkr1010/servoled` | Subscribe | Modtag kommandoer |
-| `mkr1010/temperature` | Publish | Sender temperatur (°C) |
-| `mkr1010/humidity` | Publish | Sender luftfugtighed (%) |
+| `mkr1010/servoled` | Subscribe | Modtag kommandoer (servo/LED) |
+| `mkr1010/request` | Subscribe | Modtag data requests |
+| `mkr1010/response` | Publish | Svar på requests |
 
-### Kommandoer (send til `mkr1010/servoled`)
+### Servo/LED Kommandoer (send til `mkr1010/servoled`)
 
 | Kommando | Handling |
 |----------|----------|
-| `0` | Servo til 0° |
-| `90` | Servo til 90° |
-| `180` | Servo til 180° |
+| `servo:X` | Servo til X° (0-180, til slider) |
 | `ON` | Tænd LED |
 | `OFF` | Sluk LED |
+
+### Data Requests (send til `mkr1010/request`)
+
+| Kommando | Svar på `mkr1010/response` |
+|----------|----------------------------|
+| `GET` | `temp:22.5,hum:45.0` |
+| `temp` | `temp:22.5` |
+| `hum` | `hum:45.0` |
+
+## Test med shiftr.io
+
+Brug shiftr.io's web interface til at:
+- Subscribe på `mkr1010/response` for at se svar
+- Publish til `mkr1010/request` med `GET`, `temp` eller `hum`
+- Publish til `mkr1010/servoled` med `servo:90` eller `ON`/`OFF`
+
+## WiFi Fejlfinding
+
+Serial Monitor viser WiFi status koder:
+- `0` = Idle
+- `1` = SSID ikke fundet (2.4GHz netværk?)
+- `3` = Forbundet
+- `4` = Forbindelse fejlede (forkert password eller WPA3)
+- `6` = Afbrudt
+
+**Bemærk:** MKR1010 understøtter **kun 2.4GHz WiFi** og WPA2.
 
 ## Dependencies
 
@@ -99,17 +124,6 @@ pio run --target upload
 
 # Åbn Serial Monitor
 pio device monitor --baud 9600
-```
-
-## Test med MQTT
-
-```bash
-# Abonner på sensor data
-mosquitto_sub -h 10.131.15.72 -t "mkr1010/#"
-
-# Send kommando
-mosquitto_pub -h 10.131.15.72 -t "mkr1010/servoled" -m "ON"
-mosquitto_pub -h 10.131.15.72 -t "mkr1010/servoled" -m "180"
 ```
 
 ## Fejlfinding
